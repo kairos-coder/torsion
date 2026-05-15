@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌀 TORSION · Symbolic Physics Engine</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="torsion-lab">
+  
+  <!-- Header -->
+  <header class="lab-header">
+    <div class="header-left">
+      <h1>🌀 TOR<span>SION</span></h1>
+      <div class="header-sub">SYMBOLIC PHYSICS ENGINE · PROJECTIVE SEMANTIC GEOMETRY</div>
+    </div>
+    <div class="header-right">
+      <div class="agent-badge" id="agentBadge">
+        <span class="agent-icon">🪶</span>
+        <span id="agentTitle">Hermes · First Particle-Operator</span>
+      </div>
+      <div class="field-indicator">
+        <span class="pulse-dot" id="fieldDot"></span>
+        <span id="fieldStrength">0.00</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stats Row -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat">
+      <div class="stat-num" id="tokenCount">0</div>
+      <div class="stat-label">TOKENS</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="deckSize">0</div>
+      <div class="stat-label">DECK</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="torsionLevel">0.00</div>
+      <div class="stat-label">TORSION</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="conjugateCount">0</div>
+      <div class="stat-label">CONJUGATES</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="canonCount">0</div>
+      <div class="stat-label">CANON</div>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="main-layout">
+    
+    <!-- Left: Card Panel -->
+    <aside class="card-panel" id="cardPanel">
+      <div class="panel-header">
+        <span>🃏 HAND</span>
+        <span class="panel-stats" id="handStats">0 cards</span>
+      </div>
+      <div class="hand-row" id="handRow"></div>
+      <div class="card-actions">
+        <button class="lab-btn primary" id="playBtn" onclick="TORSION.playSequence()">▶ PLAY SEQUENCE</button>
+        <button class="lab-btn" id="drawBtn" onclick="TORSION.drawHand()">🃏 DRAW</button>
+        <button class="lab-btn" id="evolveBtn" onclick="TORSION.evolve()">🔄 EVOLVE</button>
+      </div>
+      <div class="deck-info" id="deckInfo"></div>
+    </aside>
+
+    <!-- Center: Field View -->
+    <main class="field-panel" id="fieldPanel">
+      <div class="panel-header">
+        <span>🌀 TORSION FIELD</span>
+      </div>
+      
+      <!-- Mirror Display -->
+      <div class="mirror-display" id="mirrorDisplay">
+        <div class="mirror-surface">
+          <div class="mirror-label">CONVEX MIRROR</div>
+          <div class="mirror-reflection" id="mirrorReflection">
+            <span class="reflection-text">Awaiting particles...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resonance Spectrum -->
+      <div class="resonance-panel" id="resonancePanel">
+        <div class="panel-header">
+          <span>📊 RESONANCE SPECTRUM</span>
+        </div>
+        <div class="spectrum-bars" id="spectrumBars"></div>
+      </div>
+    </main>
+
+    <!-- Right: Log -->
+    <aside class="log-panel" id="logPanel">
+      <div class="panel-header">
+        <span>📜 HERMES SPEAKS</span>
+      </div>
+      <div class="log-stream" id="logStream"></div>
+      <div class="signal-input">
+        <input type="text" id="signalInput" placeholder="Speak a 1–3 word token..." 
+               onkeydown="if(event.key==='Enter'){TORSION.sendSignal(this.value);this.value='';}">
+        <button class="lab-btn" onclick="const i=document.getElementById('signalInput');TORSION.sendSignal(i.value);i.value='';">✧</button>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Token Bar -->
+  <div class="token-bar" id="tokenBar">
+    <div class="panel-header">
+      <span>🎯 TOKENS</span>
+      <span id="tokenBarCount">0</span>
+    </div>
+    <div class="token-scroll" id="tokenScroll"></div>
+  </div>
+
+</div>
+
+<script type="module" src="src/app.js"></script>
+</body>
+</html>
