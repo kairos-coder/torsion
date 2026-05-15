@@ -403,7 +403,7 @@ export class CardActions {
     
     try {
       const { data, error } = await this.sb
-        .from('concepts')
+        .from('tokens')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(limit);
