@@ -54,7 +54,7 @@ export class HermesGate {
     async isDuplicate(body, source, hours = 24) {
         const cutoff = new Date(Date.now() - hours * 3600000);
         const { data } = await this.sb
-            .from('concepts')
+            .from('tokens')
             .select('id')
             .eq('body', body.toLowerCase().trim())
             .eq('source', source)
@@ -104,7 +104,7 @@ export class HermesGate {
             created_at: new Date().toISOString()
         };
         
-        const { data, error } = await this.sb.from('concepts').insert(record).select().single();
+        const { data, error } = await this.sb.from('tokens').insert(record).select().single();
         if (error) return { success: false, error: error.message };
         
         this.stats.passed++;
