@@ -149,7 +149,7 @@ function updateButtons(state) {
 window.TORSION = {
   drawHand: () => hermes.drawHand(),
   playSequence: () => hermes.playSequence(),
-  evolve: () => hermes.evolve(),
+  evolve: () => hermes.strategicEvolve(),
   sendSignal: async (body) => {
     if (!body || !body.trim()) return;
     const token = body.trim();
