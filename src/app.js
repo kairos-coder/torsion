@@ -1,7 +1,7 @@
 // TORSION · Laboratory Controller
 // Wires Hermes agent to the UI
-
-import { createClient } from '@supabase/supabase-js';
+// ✅ Use CDN version instead
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import { loadModel, onStateChange, isReady } from './semantic-core.js';
 import { HermesGate } from './hermes-gate.js';
 import { HermesAgent } from './agents/hermes.js';
