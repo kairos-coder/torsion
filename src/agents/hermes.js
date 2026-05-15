@@ -471,3 +471,250 @@ export class HermesAgent {
     this.notifyListeners();
   }
 }
+// ═══════════════════════════════════════════
+// CARD GENERATION — Hermes creates new tools
+// ═══════════════════════════════════════════
+
+/**
+ * Generate a new card based on what the field has learned.
+ * Uses resonance spectrum to determine what kind of card would be useful.
+ */
+generateCard() {
+  const fieldState = this.field.getFieldState();
+  const resonance = this.field.getResonanceSpectrum(3);
+  const deckStats = this.deck.getStats();
+  
+  // Determine what's missing from the deck
+  const torsionProfile = this.deck.getTorsionProfile();
+  const missingTypes = [];
+  
+  if (!torsionProfile['amplify'] || torsionProfile['amplify'].count < 2) missingTypes.push('source');
+  if (!torsionProfile['filter'] || torsionProfile['filter'].count < 2) missingTypes.push('gate');
+  if (!torsionProfile['resonate'] || torsionProfile['resonate'].count < 2) missingTypes.push('semantic');
+  if (!torsionProfile['persist'] || torsionProfile['persist'].count < 2) missingTypes.push('memory');
+  if (!torsionProfile['twist'] || torsionProfile['twist'].count < 2) missingTypes.push('torsion');
+  
+  // Pick a missing type, or a random one if the deck is balanced
+  const type = missingTypes.length > 0 
+    ? missingTypes[Math.floor(Math.random() * missingTypes.length)]
+    : ['source', 'gate', 'semantic', 'memory', 'torsion'][Math.floor(Math.random() * 5)];
+  
+  // Generate based on type
+  const newCard = this.createCard(type, resonance, fieldState);
+  
+  // Add to deck
+  this.deck.cards.push(newCard);
+  
+  this.speak('evolve', `✨ Generated new card: ${newCard.icon} ${newCard.name}`);
+  this.speak('system', `   Type: ${type} | Confidence: ${Math.round(newCard.confidence * 100)}%`);
+  this.speak('system', `   "${newCard.description}"`);
+  
+  return newCard;
+}
+
+/**
+ * Create a card of a specific type, tuned to the current field state.
+ */
+createCard(type, resonance, fieldState) {
+  const topSymbols = resonance.map(r => r.symbol).join(', ');
+  const id = `generated_${type}_${Date.now()}`;
+  
+  const templates = {
+    source: {
+      name: `HUNT: ${resonance[0]?.symbol || 'signal'}`.toUpperCase(),
+      icon: '🎯',
+      torsionClass: 'amplify',
+      description: `Seek tokens related to "${resonance[0]?.symbol || 'meaning'}"`,
+      action: 'fetchFastSources',
+      params: { query: resonance[0]?.symbol }
+    },
+    gate: {
+      name: `FILTER: ${resonance[0]?.symbol || 'noise'}`.toUpperCase(),
+      icon: '🪮',
+      torsionClass: 'filter',
+      description: `Quality filter tuned to ${topSymbols}`,
+      action: 'runGateCheck',
+      params: { threshold: 0.6 + fieldState.averageTorsion * 0.1 }
+    },
+    semantic: {
+      name: `UNDERSTAND: ${resonance[0]?.symbol || 'meaning'}`.toUpperCase(),
+      icon: '🔮',
+      torsionClass: 'resonate',
+      description: `Find semantic resonance with "${resonance[0]?.symbol || 'truth'}"`,
+      action: 'semanticFilter',
+      params: { threshold: 0.5 }
+    },
+    memory: {
+      name: `REMEMBER: ${resonance[0]?.symbol || 'past'}`.toUpperCase(),
+      icon: '💾',
+      torsionClass: 'persist',
+      description: `Store tokens related to ${topSymbols}`,
+      action: 'storeToken',
+      params: {}
+    },
+    torsion: {
+      name: `TWIST: ${resonance[0]?.symbol || 'reality'}`.toUpperCase(),
+      icon: '🌀',
+      torsionClass: 'twist',
+      description: `Apply torsion strength ${Math.round(fieldState.averageTorsion)} to the field`,
+      action: 'applyTorsion',
+      params: { strength: Math.min(3, fieldState.averageTorsion) }
+    }
+  };
+  
+  const template = templates[type] || templates.torsion;
+  
+  return {
+    id,
+    name: template.name,
+    icon: template.icon,
+    type: type,
+    torsionClass: template.torsionClass,
+    description: template.description,
+    confidence: 0.5 + fieldState.averageTorsion * 0.1,
+    playCount: 0,
+    successCount: 0,
+    generation: this.deck.getStats().generationCount + 1,
+    parent: 'hermes_generated',
+    action: template.action,
+    params: template.params
+  };
+}
+
+// ═══════════════════════════════════════════
+// STRATEGIC SEQUENCING — Play cards in optimal order
+// ═══════════════════════════════════════════
+
+/**
+ * Analyze the hand and determine the optimal play sequence.
+ * Source cards first (gather), then gate/semantic (filter), 
+ * then torsion/memory (process), then evolve (mutate).
+ */
+optimizeSequence() {
+  if (this.deck.hand.length === 0) return [];
+  
+  const hand = [...this.deck.hand];
+  
+  // Score each card for its position in the sequence
+  const scored = hand.map((card, index) => {
+    let positionScore = 0;
+    
+    // Source cards should go first (gather tokens)
+    if (card.type === 'source') positionScore = 100;
+    // Gate cards next (filter quality)
+    else if (card.type === 'gate') positionScore = 80;
+    // Semantic cards after gate (understand)
+    else if (card.type === 'semantic') positionScore = 60;
+    // Memory/storage cards next (persist)
+    else if (card.type === 'memory') positionScore = 40;
+    // Torsion cards next (transform)
+    else if (card.type === 'torsion') positionScore = 20;
+    // Signal cards last (manual input)
+    else if (card.type === 'signal') positionScore = 10;
+    
+    // Boost for high-confidence cards
+    positionScore += card.confidence * 10;
+    
+    // Boost for cards that need play (low play count)
+    if (card.playCount < 3) positionScore += 5;
+    
+    return { card, index, score: positionScore };
+  });
+  
+  // Sort by score descending
+  scored.sort((a, b) => b.score - a.score);
+  
+  const sequence = scored.map(s => s.card);
+  
+  this.speak('system', `🧠 Optimal sequence: ${sequence.map(c => c.name).join(' → ')}`);
+  
+  return sequence;
+}
+
+/**
+ * Play the hand in the optimal sequence.
+ */
+async playOptimizedSequence() {
+  if (this.isPlaying || this.deck.hand.length === 0) {
+    this.speak('system', 'No cards to play');
+    return;
+  }
+  
+  const sequence = this.optimizeSequence();
+  
+  // Reorder the hand to match the optimized sequence
+  this.deck.hand = sequence;
+  
+  // Play normally (now in optimized order)
+  return await this.playSequence();
+}
+
+// ═══════════════════════════════════════════
+// STRATEGIC EVOLUTION — Prune and generate
+// ═══════════════════════════════════════════
+
+/**
+ * Strategic evolution: analyze the deck, prune weak cards, 
+ * generate new ones to fill gaps.
+ */
+strategicEvolve() {
+  const stats = this.deck.getStats();
+  const torsionProfile = this.deck.getTorsionProfile();
+  
+  this.speak('evolve', '🧬 Strategic evolution initiated...');
+  
+  // Find cards that are dead weight
+  const weakCards = [...this.deck.cards, ...this.deck.discard]
+    .filter(c => c.confidence < 0.25 && c.playCount > 5 && c.generation > 0);
+  
+  if (weakCards.length > 0) {
+    // Remove the weakest
+    const toRemove = weakCards[0];
+    this.deck.cards = this.deck.cards.filter(c => c.id !== toRemove.id);
+    this.deck.discard = this.deck.discard.filter(c => c.id !== toRemove.id);
+    this.speak('system', `🗑️ Pruned: ${toRemove.name} (confidence: ${Math.round(toRemove.confidence * 100)}%)`);
+  }
+  
+  // Generate cards to fill gaps
+  const missingTypes = [];
+  if (!torsionProfile['amplify'] || torsionProfile['amplify'].count < 3) missingTypes.push('source');
+  if (!torsionProfile['filter'] || torsionProfile['filter'].count < 2) missingTypes.push('gate');
+  if (!torsionProfile['resonate'] || torsionProfile['resonate'].count < 2) missingTypes.push('semantic');
+  if (!torsionProfile['twist'] || torsionProfile['twist'].count < 2) missingTypes.push('torsion');
+  
+  // Generate up to 2 cards to fill gaps
+  const toGenerate = missingTypes.slice(0, 2);
+  for (const type of toGenerate) {
+    this.generateCard();
+  }
+  
+  // If no gaps, maybe generate a torsion card for variety
+  if (toGenerate.length === 0 && Math.random() > 0.5) {
+    this.generateCard();
+  }
+  
+  this.speak('system', `📊 Deck: ${this.deck.cards.length} cards | Avg confidence: ${Math.round(stats.averageConfidence * 100)}%`);
+}
+
+/**
+ * Decide whether to evolve based on deck health.
+ */
+shouldEvolve() {
+  const stats = this.deck.getStats();
+  
+  // Evolve if confidence is dropping
+  if (stats.averageConfidence < 0.45) return true;
+  
+  // Evolve if deck is small
+  if (stats.deckSize < 8) return true;
+  
+  // Evolve if there are weak cards
+  const weakCount = [...this.deck.cards, ...this.deck.discard]
+    .filter(c => c.confidence < 0.3 && c.playCount > 3).length;
+  if (weakCount > 3) return true;
+  
+  // Evolve periodically
+  if (this.cycleCount % 3 === 0) return true;
+  
+  return false;
+}
