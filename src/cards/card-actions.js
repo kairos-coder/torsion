@@ -2,9 +2,9 @@
 // Bridges existing Hermes modules to the card system
 // Each card.action maps to a function here
 
-import { FAST_SOURCES, SLOW_SOURCES } from '../../source-registry.js';
-import { getEmbedding, getSimilarity, isReady } from '../../semantic-core.js';
-import { passesGate } from '../../hermes-gate.js';
+import { FAST_SOURCES, SLOW_SOURCES } from '../source-registry.js';
+import { getEmbedding, getSimilarity, isReady } from '../semantic-core.js';
+import { passesGate } from '../hermes-gate.js';
 
 export class CardActions {
   constructor(gate, sb, torsionField, conjugate) {
