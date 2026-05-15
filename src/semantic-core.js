@@ -35,7 +35,7 @@ export async function loadModel() {
     
     loadPromise = (async () => {
         try {
-            const { pipeline, env } = await import('@xenova/transformers');
+            const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1/+esm');
             
             // Configure for aggressive caching
             env.allowLocalModels = true;
