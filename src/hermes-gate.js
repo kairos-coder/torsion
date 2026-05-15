@@ -94,17 +94,17 @@ export class HermesGate {
     }
     
     const record = {
-        body: body.toLowerCase().trim(),
-        source: raw.source,
-        score: score,
-        domain: raw.metadata?.domain || null,
-        word_type: wordCount === 1 ? 'single' : wordCount === 2 ? 'pair' : 'triple',
-        metadata: raw.metadata || {},
-        frequency: 1,
-        last_seen_at: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        expires_at: new Date(Date.now() + this.expiryDays * 86400000).toISOString()
-    };
+    body: body.toLowerCase().trim(),
+    source: raw.source,
+    score: Math.round(score),  // ← Add Math.round()
+    domain: raw.metadata?.domain || null,
+    word_type: wordCount === 1 ? 'single' : wordCount === 2 ? 'pair' : 'triple',
+    metadata: raw.metadata || {},
+    frequency: 1,
+    last_seen_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    expires_at: new Date(Date.now() + this.expiryDays * 86400000).toISOString()
+};
     
     const { data, error } = await this.sb
         .from('tokens')
