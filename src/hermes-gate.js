@@ -64,51 +64,62 @@ export class HermesGate {
     }
     
     async process(raw) {
-        const body = raw.body.trim();
-        const wordCount = body.split(/\s+/).length;
-        
-        if (wordCount < this.minWords || wordCount > this.maxWords) {
-            return { success: false, error: `word count ${wordCount}` };
-        }
-        
-        const gate = passesGate(body);
-        if (!gate.pass) {
-            this.stats.rejected++;
-            return { success: false, error: gate.reason };
-        }
-        
-        if (await this.isDuplicate(body, raw.source)) {
-            return { success: false, error: 'duplicate' };
-        }
-        
-        let score = (raw.score || 50) + gate.scoreBoost;
-        
-        // Add semantic novelty if available
-        if (isReady()) {
-            const embedding = await getEmbedding(body);
-            // Novelty scoring would go here
-            score = Math.min(100, score + 5);
-        }
-        
-        const record = {
-    body: body.toLowerCase().trim(),
-    source: raw.source,
-    score,
-    domain: raw.metadata?.domain || null,
-    word_type: wordCount === 1 ? 'single' : wordCount === 2 ? 'pair' : 'triple',
-    metadata: raw.metadata || {},
-    frequency: 1,
-    last_seen_at: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-    expires_at: new Date(Date.now() + this.expiryDays * 86400000).toISOString()
-};
-        
-        const { data, error } = await this.sb.from('tokens').insert(record).select().single();
-        if (error) return { success: false, error: error.message };
-        
-        this.stats.passed++;
-        return { success: true, id: data.id, score };
+    const body = raw.body.trim();
+    const wordCount = body.split(/\s+/).length;
+    
+    if (wordCount < this.minWords || wordCount > this.maxWords) {
+        return { success: false, error: `word count ${wordCount}` };
     }
+    
+    const gate = passesGate(body);
+    if (!gate.pass) {
+        this.stats.rejected++;
+        return { success: false, error: gate.reason };
+    }
+    
+    if (await this.isDuplicate(body, raw.source)) {
+        return { success: false, error: 'duplicate' };
+    }
+    
+    let score = (raw.score || 50) + gate.scoreBoost;
+    
+    // Add semantic novelty if available
+    if (isReady()) {
+        try {
+            const embedding = await getEmbedding(body);
+            score = Math.min(100, score + 5);
+        } catch (e) {
+            // Semantic not critical — continue without
+        }
+    }
+    
+    const record = {
+        body: body.toLowerCase().trim(),
+        source: raw.source,
+        score: score,
+        domain: raw.metadata?.domain || null,
+        word_type: wordCount === 1 ? 'single' : wordCount === 2 ? 'pair' : 'triple',
+        metadata: raw.metadata || {},
+        frequency: 1,
+        last_seen_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + this.expiryDays * 86400000).toISOString()
+    };
+    
+    const { data, error } = await this.sb
+        .from('tokens')
+        .insert(record)
+        .select('id, score')
+        .single();
+    
+    if (error) {
+        console.warn('Insert failed:', error.message, error.details);
+        return { success: false, error: error.message };
+    }
+    
+    this.stats.passed++;
+    return { success: true, id: data.id, score: data.score };
+}
     
     async processBatch(items, onProgress) {
         const results = [];
