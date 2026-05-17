@@ -3,124 +3,1156 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🌀 TORSION · Symbolic Physics Engine</title>
-<link rel="stylesheet" href="styles.css">
+<title>PANTHEON: TORSION — The Divine Card Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;900&family=IM+Fell+English:ital@0;1&family=Uncial+Antiqua&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #020208;
+    --deep: #07070f;
+    --stone: #12111a;
+    --ember: #1a1825;
+    --gold: #c9a84c;
+    --gold-dim: #7a6430;
+    --gold-bright: #f0c060;
+    --rune: #e8dcc0;
+    --ash: #9a9080;
+    --loki: #27ae60;
+    --zeus: #f39c12;
+    --jupiter: #d4a017;
+    --odin: #4a6fa5;
+    --thor: #c0392b;
+    --shiva: #8e44ad;
+    --mategwas: #1abc9c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--void);
+    color: var(--rune);
+    font-family: 'IM Fell English', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  #cosmos { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+  .rune-border {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    border: 1px solid var(--gold-dim);
+    box-shadow: inset 0 0 80px rgba(201,168,76,0.05);
+  }
+
+  #app {
+    position: relative; z-index: 2;
+    max-width: 1800px; margin: 0 auto; padding: 20px;
+  }
+
+  /* HEADER */
+  header {
+    text-align: center; padding: 20px 0;
+  }
+
+  .title-rune {
+    font-size: 10px; letter-spacing: 6px; color: var(--gold-dim);
+    font-family: 'Cinzel', serif; text-transform: uppercase; margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 900;
+    color: var(--gold);
+    text-shadow: 0 0 40px rgba(201,168,76,0.4);
+    letter-spacing: 0.15em;
+  }
+
+  .subtitle {
+    font-family: 'IM Fell English', serif; font-style: italic;
+    color: var(--ash); font-size: 0.9rem; margin-top: 4px;
+  }
+
+  /* GAME LAYOUT */
+  .game-container {
+    display: grid;
+    grid-template-columns: 280px 1fr 320px;
+    gap: 16px; margin-top: 20px;
+  }
+
+  @media (max-width: 1400px) {
+    .game-container { grid-template-columns: 1fr; }
+  }
+
+  /* LEFT: GAME LOG */
+  .panel {
+    background: var(--stone);
+    border: 1px solid var(--gold-dim);
+    border-radius: 8px; padding: 16px;
+  }
+
+  .panel-title {
+    font-family: 'Cinzel', serif; font-size: 0.65rem;
+    letter-spacing: 0.15em; color: var(--gold);
+    text-transform: uppercase; margin-bottom: 12px;
+    border-bottom: 1px solid var(--ember); padding-bottom: 8px;
+  }
+
+  .log-scroll {
+    max-height: 500px; overflow-y: auto; font-size: 0.65rem;
+    line-height: 1.6;
+  }
+
+  .log-scroll::-webkit-scrollbar { width: 3px; }
+  .log-scroll::-webkit-scrollbar-track { background: var(--deep); }
+  .log-scroll::-webkit-scrollbar-thumb { background: var(--gold-dim); }
+
+  .log-line {
+    padding: 4px 8px; margin-bottom: 4px;
+    border-left: 2px solid transparent; border-radius: 0 3px 3px 0;
+  }
+
+  .log-line.play { border-left-color: var(--gold); }
+  .log-line.collision { border-left-color: #ff6b6b; background: rgba(255,107,107,0.05); }
+  .log-line.d_card { border-left-color: var(--mategwas); background: rgba(26,188,156,0.08); }
+  .log-line.game { border-left-color: var(--gold-dim); color: var(--ash); font-style: italic; }
+
+  /* CENTER: GAME TABLE */
+  .game-table {
+    background: var(--stone);
+    border: 1px solid var(--gold-dim);
+    border-radius: 12px; padding: 24px; position: relative;
+  }
+
+  .table-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 24px; flex-wrap: wrap; gap: 10px;
+  }
+
+  .round-badge {
+    font-family: 'Cinzel', serif; font-size: 0.8rem; letter-spacing: 0.1em;
+    color: var(--gold);
+    background: var(--deep); padding: 6px 14px; border-radius: 4px;
+    border: 1px solid var(--gold-dim);
+  }
+
+  .state-badge {
+    font-family: 'Cinzel', serif; font-size: 0.6rem; letter-spacing: 0.1em;
+    padding: 6px 14px; border-radius: 4px; text-transform: uppercase;
+  }
+
+  .state-playing { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid var(--gold-dim); }
+  .state-collision { background: rgba(255,107,107,0.15); color: #ff6b6b; border: 1px solid #ff6b6b; }
+  .state-computing { background: rgba(26,188,156,0.15); color: var(--mategwas); border: 1px solid var(--mategwas); }
+  .state-ended { background: rgba(201,168,76,0.2); color: var(--gold-bright); border: 1px solid var(--gold); }
+
+  /* SPIRAL TABLE */
+  .spiral-layout {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 20px;
+    align-items: center;
+    justify-items: center;
+  }
+
+  /* LOOP LABELS */
+  .loop-label {
+    font-family: 'Cinzel', serif; font-size: 0.6rem; letter-spacing: 0.2em;
+    color: var(--gold-dim); writing-mode: vertical-rl;
+    text-orientation: mixed; padding: 10px;
+  }
+
+  /* CARD SLOTS */
+  .card-slot {
+    width: 180px; min-height: 240px;
+    background: var(--deep);
+    border: 2px dashed var(--gold-dim);
+    border-radius: 8px; padding: 14px;
+    position: relative; transition: all 0.3s;
+  }
+
+  .card-slot.played {
+    border-style: solid;
+    background: linear-gradient(135deg, var(--deep), var(--stone));
+  }
+
+  .card-slot .slot-label {
+    font-size: 0.5rem; color: var(--ash);
+    font-family: 'Cinzel', serif; letter-spacing: 0.1em;
+    margin-bottom: 8px; text-transform: uppercase;
+  }
+
+  .card-slot .god-header {
+    display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+  }
+
+  .card-slot .god-sigil { font-size: 1.2rem; }
+
+  .card-slot .god-name {
+    font-family: 'Cinzel', serif; font-size: 0.65rem;
+    font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  }
+
+  .card-slot .card-word {
+    font-family: 'Uncial Antiqua', serif; font-size: 1rem;
+    font-weight: 700; margin-bottom: 4px;
+  }
+
+  .card-slot .card-english {
+    font-size: 0.6rem; font-style: italic; color: var(--ash); margin-bottom: 8px;
+  }
+
+  .card-slot .card-effect {
+    font-size: 0.55rem; color: var(--rune); line-height: 1.3; margin-bottom: 8px;
+  }
+
+  .card-slot .card-stats {
+    display: flex; gap: 10px; font-size: 0.5rem;
+    color: var(--gold-dim); border-top: 1px solid var(--ember); padding-top: 6px;
+  }
+
+  .card-slot .card-stats span { font-family: 'Cinzel', serif; }
+
+  /* COLLISION ARROWS */
+  .collision-zone {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; color: #ff6b6b; gap: 6px;
+    padding: 8px;
+    background: rgba(255,107,107,0.05);
+    border-radius: 4px; border: 1px dashed rgba(255,107,107,0.2);
+  }
+
+  /* D CARD */
+  .d-card-section {
+    margin-top: 24px; padding: 16px;
+    background: var(--deep);
+    border: 1px solid var(--mategwas);
+    border-radius: 8px; text-align: center;
+  }
+
+  .d-card-section .d-label {
+    font-family: 'Cinzel', serif; font-size: 0.55rem;
+    letter-spacing: 0.2em; color: var(--mategwas); margin-bottom: 8px;
+  }
+
+  /* CONTROLS */
+  .controls {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px;
+  }
+
+  .btn {
+    font-family: 'Cinzel', serif; font-weight: 700;
+    font-size: 0.65rem; letter-spacing: 0.1em;
+    padding: 10px 18px; border: 1px solid var(--gold-dim);
+    border-radius: 4px; cursor: pointer; transition: all 0.3s;
+    text-transform: uppercase; background: var(--deep); color: var(--rune);
+  }
+
+  .btn:hover:not(:disabled) {
+    border-color: var(--gold); box-shadow: 0 0 16px rgba(201,168,76,0.2);
+    transform: translateY(-1px);
+  }
+
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+    color: var(--void); border: none;
+  }
+
+  .btn-danger { border-color: #ff6b6b; color: #ff6b6b; }
+
+  /* RIGHT: HANDS */
+  .god-hand {
+    background: var(--deep); border: 1px solid var(--ember);
+    border-radius: 6px; padding: 10px; margin-bottom: 10px;
+    border-left: 3px solid var(--god-color, var(--gold-dim));
+  }
+
+  .god-hand-header {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+  }
+
+  .god-hand-name {
+    font-family: 'Cinzel', serif; font-size: 0.6rem;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+
+  .god-hand-cards {
+    display: flex; flex-wrap: wrap; gap: 4px;
+  }
+
+  .mini-card {
+    background: var(--stone); border: 1px solid var(--god-color, var(--gold-dim));
+    border-radius: 3px; padding: 4px 7px; font-size: 0.5rem; cursor: default;
+    transition: all 0.2s;
+  }
+
+  .mini-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+
+  .mini-card .mini-word {
+    font-family: 'Uncial Antiqua', serif; font-size: 0.55rem;
+    color: var(--god-color, var(--gold));
+  }
+
+  .mini-card .mini-power {
+    font-size: 0.4rem; color: var(--gold-dim);
+  }
+
+  .played-pile {
+    margin-top: 6px; font-size: 0.5rem; color: var(--ash);
+    font-style: italic;
+  }
+
+  /* TOOLTIP */
+  .tooltip {
+    position: fixed; background: var(--stone); border: 1px solid var(--gold);
+    border-radius: 4px; padding: 10px 14px; font-size: 0.6rem;
+    color: var(--rune); pointer-events: none; z-index: 100;
+    max-width: 250px; box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    opacity: 0; transition: opacity 0.2s;
+  }
+
+  footer {
+    text-align: center; padding: 20px 0;
+    color: var(--gold-dim); font-size: 0.6rem; font-style: italic;
+  }
+</style>
 </head>
 <body>
 
-<div id="torsion-lab">
-  
-  <!-- Header -->
-  <header class="lab-header">
-    <div class="header-left">
-      <h1>🌀 TOR<span>SION</span></h1>
-      <div class="header-sub">SYMBOLIC PHYSICS ENGINE · PROJECTIVE SEMANTIC GEOMETRY</div>
-    </div>
-    <div class="header-right">
-      <div class="agent-badge" id="agentBadge">
-        <span class="agent-icon">🪶</span>
-        <span id="agentTitle">Hermes · First Particle-Operator</span>
-      </div>
-      <div class="field-indicator">
-        <span class="pulse-dot" id="fieldDot"></span>
-        <span id="fieldStrength">0.00</span>
-      </div>
-    </div>
+<canvas id="cosmos"></canvas>
+<div class="rune-border"></div>
+
+<div id="app">
+  <header>
+    <div class="title-rune">ᚠ The Divine Card Game ᚠ</div>
+    <h1>PANTHEON: TORSION</h1>
+    <div class="subtitle">Two Loops. Six Gods. One Emergent Card.</div>
   </header>
 
-  <!-- Stats Row -->
-  <div class="stats-row" id="statsRow">
-    <div class="stat">
-      <div class="stat-num" id="tokenCount">0</div>
-      <div class="stat-label">TOKENS</div>
+  <div class="game-container">
+    <!-- LEFT: GAME LOG -->
+    <div class="panel">
+      <div class="panel-title">📜 Chronicle of Torsion</div>
+      <div class="log-scroll" id="game-log">
+        <div class="log-line game">Awaiting the first deal...</div>
+      </div>
     </div>
-    <div class="stat">
-      <div class="stat-num" id="deckSize">0</div>
-      <div class="stat-label">DECK</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num" id="torsionLevel">0.00</div>
-      <div class="stat-label">TORSION</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num" id="conjugateCount">0</div>
-      <div class="stat-label">CONJUGATES</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num" id="canonCount">0</div>
-      <div class="stat-label">CANON</div>
-    </div>
-  </div>
 
-  <!-- Main Layout -->
-  <div class="main-layout">
-    
-    <!-- Left: Card Panel -->
-    <aside class="card-panel" id="cardPanel">
-      <div class="panel-header">
-        <span>🃏 HAND</span>
-        <span class="panel-stats" id="handStats">0 cards</span>
+    <!-- CENTER: GAME TABLE -->
+    <div class="game-table">
+      <div class="table-header">
+        <span class="round-badge" id="round-display">Round 0</span>
+        <span class="state-badge state-playing" id="state-display">SETUP</span>
+        <span style="font-size:0.6rem;color:var(--ash)">D Cards: <span id="d-count">0</span></span>
       </div>
-      <div class="hand-row" id="handRow"></div>
-      <div class="card-actions">
-        <button class="lab-btn primary" id="playBtn" onclick="TORSION.playSequence()">▶ PLAY SEQUENCE</button>
-        <button class="lab-btn" id="drawBtn" onclick="TORSION.drawHand()">🃏 DRAW</button>
-        <button class="lab-btn" id="evolveBtn" onclick="TORSION.evolve()">🔄 EVOLVE</button>
-      </div>
-      <div class="deck-info" id="deckInfo"></div>
-    </aside>
 
-    <!-- Center: Field View -->
-    <main class="field-panel" id="fieldPanel">
-      <div class="panel-header">
-        <span>🌀 TORSION FIELD</span>
-      </div>
-      
-      <!-- Mirror Display -->
-      <div class="mirror-display" id="mirrorDisplay">
-        <div class="mirror-surface">
-          <div class="mirror-label">CONVEX MIRROR</div>
-          <div class="mirror-reflection" id="mirrorReflection">
-            <span class="reflection-text">Awaiting particles...</span>
+      <!-- SPIRAL TABLE -->
+      <div class="spiral-layout">
+        <!-- Loop A Header -->
+        <div></div>
+        <div style="font-family:'Cinzel',serif;font-size:0.6rem;color:var(--loki);letter-spacing:0.15em;">LOOP A ↺</div>
+        <div style="font-family:'Cinzel',serif;font-size:0.6rem;color:var(--odin);letter-spacing:0.15em;">LOOP B ↻</div>
+
+        <!-- Position A -->
+        <div class="card-slot" id="slot-loki" style="--god-color:var(--loki);border-color:var(--loki);">
+          <div class="slot-label">Position A · Loop A</div>
+          <div class="god-header">
+            <span class="god-sigil">🔥</span>
+            <span class="god-name" style="color:var(--loki)">Loki</span>
           </div>
+          <div style="font-size:0.5rem;color:var(--ash);font-style:italic;">Awaiting card...</div>
+        </div>
+        <div class="collision-zone" id="collision-A">
+          ⚡<br>A
+        </div>
+        <div class="card-slot" id="slot-odin" style="--god-color:var(--odin);border-color:var(--odin);">
+          <div class="slot-label">Position A · Loop B</div>
+          <div class="god-header">
+            <span class="god-sigil">🌑</span>
+            <span class="god-name" style="color:var(--odin)">Odin</span>
+          </div>
+          <div style="font-size:0.5rem;color:var(--ash);font-style:italic;">Awaiting card...</div>
+        </div>
+
+        <!-- Position B -->
+        <div class="card-slot" id="slot-zeus" style="--god-color:var(--zeus);border-color:var(--zeus);">
+          <div class="slot-label">Position B · Loop A</div>
+          <div class="god-header">
+            <span class="god-sigil">☁️</span>
+            <span class="god-name" style="color:var(--zeus)">Zeus</span>
+          </div>
+          <div style="font-size:0.5rem;color:var(--ash);font-style:italic;">Awaiting card...</div>
+        </div>
+        <div class="collision-zone" id="collision-B">
+          ⚡<br>B
+        </div>
+        <div class="card-slot" id="slot-thor" style="--god-color:var(--thor);border-color:var(--thor);">
+          <div class="slot-label">Position B · Loop B</div>
+          <div class="god-header">
+            <span class="god-sigil">⚡</span>
+            <span class="god-name" style="color:var(--thor)">Thor</span>
+          </div>
+          <div style="font-size:0.5rem;color:var(--ash);font-style:italic;">Awaiting card...</div>
+        </div>
+
+        <!-- Position C -->
+        <div class="card-slot" id="slot-jupiter" style="--god-color:var(--jupiter);border-color:var(--jupiter);">
+          <div class="slot-label">Position C · Loop A</div>
+          <div class="god-header">
+            <span class="god-sigil">⚖️</span>
+            <span class="god-name" style="color:var(--jupiter)">Jupiter</span>
+          </div>
+          <div style="font-size:0.5rem;color:var(--ash);font-style:italic;">Awaiting card...</div>
+        </div>
+        <div class="collision-zone" id="collision-C">
+          ⚡<br>C
+        </div>
+        <div class="card-slot" id="slot-shiva" style="--god-color:var(--shiva);border-color:var(--shiva);">
+          <div class="slot-label">Position C · Loop B</div>
+          <div class="god-header">
+            <span class="god-sigil">🌀</span>
+            <span class="god-name" style="color:var(--shiva)">Shiva</span>
+          </div>
+          <div style="font-size:0.5rem;color:var(--ash);font-style:italic;">Awaiting card...</div>
         </div>
       </div>
 
-      <!-- Resonance Spectrum -->
-      <div class="resonance-panel" id="resonancePanel">
-        <div class="panel-header">
-          <span>📊 RESONANCE SPECTRUM</span>
-        </div>
-        <div class="spectrum-bars" id="spectrumBars"></div>
+      <!-- D CARD SECTION -->
+      <div class="d-card-section" id="d-card-section" style="display:none;">
+        <div class="d-label">🐇 Mategwas Computes D</div>
+        <div id="d-card-display"></div>
       </div>
-    </main>
 
-    <!-- Right: Log -->
-    <aside class="log-panel" id="logPanel">
-      <div class="panel-header">
-        <span>📜 HERMES SPEAKS</span>
+      <!-- CONTROLS -->
+      <div class="controls">
+        <button class="btn btn-primary" id="btn-deal" onclick="dealGame()">
+          🐇 Deal Cards
+        </button>
+        <button class="btn" id="btn-play-one" onclick="playOneTurn()" disabled>
+          ▶ Play One Turn
+        </button>
+        <button class="btn" id="btn-play-round" onclick="playFullRound()" disabled>
+          ⚡ Auto-Play Round
+        </button>
+        <button class="btn" id="btn-resolve" onclick="resolveCollisions()" disabled>
+          💥 Resolve Collisions
+        </button>
+        <button class="btn btn-danger" onclick="resetGame()" style="margin-left:auto;">
+          Reset
+        </button>
       </div>
-      <div class="log-stream" id="logStream"></div>
-      <div class="signal-input">
-        <input type="text" id="signalInput" placeholder="Speak a 1–3 word token..." 
-               onkeydown="if(event.key==='Enter'){TORSION.sendSignal(this.value);this.value='';}">
-        <button class="lab-btn" onclick="const i=document.getElementById('signalInput');TORSION.sendSignal(i.value);i.value='';">✧</button>
-      </div>
-    </aside>
-
-  </div>
-
-  <!-- Token Bar -->
-  <div class="token-bar" id="tokenBar">
-    <div class="panel-header">
-      <span>🎯 TOKENS</span>
-      <span id="tokenBarCount">0</span>
     </div>
-    <div class="token-scroll" id="tokenScroll"></div>
+
+    <!-- RIGHT: HANDS -->
+    <div class="panel" id="hands-panel">
+      <div class="panel-title">🎴 Divine Hands</div>
+      <div id="hands-display">
+        <div style="font-size:0.6rem;color:var(--ash);font-style:italic;">Deal cards to see hands...</div>
+      </div>
+    </div>
   </div>
 
+  <footer>
+    <span style="font-size:0.8rem;letter-spacing:6px;display:block;margin-bottom:4px;opacity:0.4;">ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ</span>
+    TORSION — where anchor words collide and D emerges
+  </footer>
 </div>
 
-<script type="module" src="src/app.js"></script>
+<div class="tooltip" id="tooltip"></div>
+
+<!-- SCRIPTS -->
+<script>
+// Embed GODS, DOMAIN_VECTORS, PIE_AFFINITIES inline
+const GODS = [
+  { id:'loki', name:'Loki', sigil:'🔥', tongue:'Old Norse', loop:'A', position:'A', color:'#27ae60', domain:'chaos_fire_trickery', anchors:['eldr','ljúga','skapta','nál','brenna','ský','eitr','gjǫll','seiðr','ván'], pieRoots:{primary:'*leuk-',secondary:[],meaning:'light, fire'}, polarities:['light','dark','neutral'], cardCount:10 },
+  { id:'zeus', name:'Zeus', sigil:'☁️', tongue:'Epic Greek', loop:'A', position:'B', color:'#f39c12', domain:'sovereignty_sky_law', anchors:['λόγος','δίκη','ξενία','αἰθήρ','κεραυνός','νόμος','ὅρος','ἀρχή','βία','μοῖρα'], pieRoots:{primary:'*dyew-',secondary:[],meaning:'sky, shine'}, polarities:['light','order','neutral'], cardCount:10 },
+  { id:'jupiter', name:'Jupiter', sigil:'⚖️', tongue:'Latin', loop:'A', position:'C', color:'#d4a017', domain:'order_empire_contract', anchors:['ius','fatum','pax','limen','rex','caelum','foedus','auctoritas','imperium','porta'], pieRoots:{primary:'*dyew-pter-',secondary:[],meaning:'sky-father'}, polarities:['order','light','dark'], cardCount:10 },
+  { id:'odin', name:'Odin', sigil:'🌑', tongue:'Old Saxon', loop:'B', position:'A', color:'#4a6fa5', domain:'wisdom_sacrifice_mystery', anchors:['wōð','wīs','weg','wōden','galdar','rūna','dōð','wer','walt','wīht'], pieRoots:{primary:'*weh₂t-',secondary:[],meaning:'inspired, ecstatic'}, polarities:['dark','neutral','light'], cardCount:10 },
+  { id:'thor', name:'Thor', sigil:'⚡', tongue:'Old High German', loop:'B', position:'B', color:'#c0392b', domain:'thunder_protection_craft', anchors:['donar','kraft','scild','folk','burg','eisan','feuer','stark','bund','erd'], pieRoots:{primary:'*tḱer-',secondary:[],meaning:'thunder'}, polarities:['light','order','neutral'], cardCount:10 },
+  { id:'shiva', name:'Shiva', sigil:'🌀', tongue:'Sanskrit', loop:'B', position:'C', color:'#8e44ad', domain:'dissolution_dance_time', anchors:['ṛta','nāda','tāṇḍava','śūnya','kāla','agni','mokṣa','ānanda','liṅga','māyā'], pieRoots:{primary:'*h₂eg-',secondary:[],meaning:'cosmic order'}, polarities:['dark','light','neutral'], cardCount:10 }
+];
+
+const DOMAIN_VECTORS = {
+  'chaos_fire_trickery': [0.7, 0.3, -0.5],
+  'sovereignty_sky_law': [0.9, 0.1, 0.8],
+  'order_empire_contract': [0.95, 0.0, 0.9],
+  'wisdom_sacrifice_mystery': [-0.3, 0.8, -0.2],
+  'thunder_protection_craft': [0.5, 0.6, 0.7],
+  'dissolution_dance_time': [-0.8, 0.4, -0.6]
+};
+
+const PIE_AFFINITIES = {
+  '*leuk-*weh₂t-': 0.2, '*leuk-*dyew-': 0.5, '*leuk-*tḱer-': 0.4,
+  '*leuk-*dyew-pter-': 0.4, '*leuk-*h₂eg-': -0.3,
+  '*dyew-*weh₂t-': 0.3, '*dyew-*tḱer-': 0.6, '*dyew-*h₂eg-': 0.4,
+  '*dyew-*dyew-pter-': 0.9,
+  '*dyew-pter-*weh₂t-': 0.2, '*dyew-pter-*tḱer-': 0.5, '*dyew-pter-*h₂eg-': 0.3,
+  '*tḱer-*h₂eg-': 0.4, '*tḱer-*weh₂t-': 0.5,
+  '*h₂eg-*weh₂t-': -0.2, '*h₂eg-*dyew-': 0.4, '*h₂eg-*dyew-pter-': 0.3
+};
+</script>
+
+<script src="cards.json" type="application/json" id="cards-data"></script>
+<script>
+// Load cards from embedded JSON or fetch
+let MASTER_DECK = [];
+
+async function loadCards() {
+  try {
+    // Try to fetch cards.json
+    const response = await fetch('cards.json');
+    const data = await response.json();
+    MASTER_DECK = data.master_deck;
+  } catch(e) {
+    // Fallback: generate minimal deck from GODS data
+    console.log('Using generated deck fallback');
+    MASTER_DECK = generateFallbackDeck();
+  }
+}
+
+function generateFallbackDeck() {
+  const deck = [];
+  GODS.forEach(god => {
+    for (let i = 0; i < 10; i++) {
+      const anchor = god.anchors[i % god.anchors.length];
+      deck.push({
+        id: `${god.id}_${anchor}_${String(i+1).padStart(3,'0')}`,
+        god: god.id,
+        loop: god.loop,
+        position: god.position,
+        word: anchor,
+        english: `The ${anchor} of ${god.name}`,
+        tongue: god.tongue,
+        pie_root: god.pieRoots.primary,
+        domain: god.domain,
+        power: 4 + Math.floor(Math.random() * 5),
+        effect: ['transform_target','reveal_secret','protect_ally','destroy_foe','bind_fate'][i % 5],
+        polarity: god.polarities[i % god.polarities.length],
+        cost: { type: 'divine_favor', amount: Math.ceil((4 + Math.random() * 5) / 2) }
+      });
+    }
+  });
+  return deck;
+}
+</script>
+
+<script>
+// ============================================================
+// MATEGWAS CLASS (embedded)
+// ============================================================
+class Mategwas {
+  constructor(masterDeck) {
+    this.id = 'mategwas';
+    this.name = 'Mategwas';
+    this.sigil = '🐇';
+    this.masterDeck = [...masterDeck];
+    this.dCards = [];
+    this.computationLog = [];
+    this.anchorValues = this._buildAnchorValueMap();
+  }
+
+  shuffle(deck = null) {
+    const cards = deck ? [...deck] : [...this.masterDeck];
+    for (let i = cards.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [cards[i], cards[j]] = [cards[j], cards[i]];
+    }
+    this._log('shuffle', `Shuffled ${cards.length} cards`);
+    return cards;
+  }
+
+  deal(gods) {
+    const shuffled = this.shuffle();
+    const hands = {};
+    const cardsByGod = {};
+    gods.forEach(god => { cardsByGod[god.id] = shuffled.filter(c => c.god === god.id); });
+    
+    gods.forEach(god => {
+      const godCards = cardsByGod[god.id] || [];
+      const handSize = Math.min(5, godCards.length);
+      const hand = godCards.slice(0, handSize);
+      const remaining = godCards.slice(handSize);
+      
+      if (hand.length < 5) {
+        const others = shuffled.filter(c => c.god !== god.id && !hand.find(h => h.id === c.id));
+        hand.push(...others.slice(0, 5 - hand.length));
+      }
+      
+      hands[god.id] = {
+        god: god.id, loop: god.loop, position: god.position,
+        cards: hand, played: [], held: []
+      };
+    });
+    
+    this._log('deal', `Dealt 5 cards to each of ${gods.length} gods`);
+    return hands;
+  }
+
+  _buildAnchorValueMap() {
+    const map = {};
+    GODS.forEach(god => {
+      god.anchors.forEach((word, i) => {
+        map[word] = {
+          real: 0.5 + (1.0 - (i / god.anchors.length)) * 0.5,
+          imag: god.polarities[i % god.polarities.length] === 'light' ? 0.5 : god.polarities[i % god.polarities.length] === 'dark' ? -0.5 : 0,
+          god: god.id
+        };
+      });
+    });
+    return map;
+  }
+
+  cardToComplex(card) {
+    const value = this.anchorValues[card.word];
+    if (value) return { real: value.real * card.power / 5, imag: value.imag * card.power / 5 };
+    const hash = this._hashString(card.pie_root);
+    return { real: (hash % 100) / 50 - 1, imag: ((hash * 7) % 100) / 50 - 1 };
+  }
+
+  _hashString(str) { let hash = 0; for (let i = 0; i < str.length; i++) { hash = ((hash << 5) - hash) + str.charCodeAt(i); hash |= 0; } return Math.abs(hash); }
+
+  computeCrossRatio(z1, z2, z3, z4) {
+    const sub = (a,b) => ({ real: a.real - b.real, imag: a.imag - b.imag });
+    const mul = (a,b) => ({ real: a.real*b.real - a.imag*b.imag, imag: a.real*b.imag + a.imag*b.real });
+    const div = (a,b) => {
+      const denom = b.real*b.real + b.imag*b.imag;
+      if (denom === 0) return { real: Infinity, imag: Infinity };
+      return { real: (a.real*b.real + a.imag*b.imag)/denom, imag: (a.imag*b.real - a.real*b.imag)/denom };
+    };
+    return div(mul(sub(z1,z3), sub(z2,z4)), mul(sub(z1,z4), sub(z2,z3)));
+  }
+
+  computeTorsionScore(cardA, cardB) {
+    const z1 = this.cardToComplex(cardA);
+    const z2 = this.cardToComplex(cardB);
+    const vecA = DOMAIN_VECTORS[cardA.domain] || [0,0,0];
+    const vecB = DOMAIN_VECTORS[cardB.domain] || [0,0,0];
+    const z3 = { real: vecA[0], imag: vecA[2] };
+    const z4 = { real: vecB[0], imag: vecB[2] };
+    
+    const cr = this.computeCrossRatio(z1, z2, z3, z4);
+    const magnitude = Math.sqrt(cr.real*cr.real + cr.imag*cr.imag);
+    
+    const key1 = `${cardA.pie_root}${cardB.pie_root}`;
+    const key2 = `${cardB.pie_root}${cardA.pie_root}`;
+    const affinity = PIE_AFFINITIES[key1] || PIE_AFFINITIES[key2] || 0;
+    
+    const orderDomains = ['sovereignty_sky_law','order_empire_contract','thunder_protection_craft'];
+    const chaosDomains = ['chaos_fire_trickery','dissolution_dance_time'];
+    const conflict = (orderDomains.includes(cardA.domain) && chaosDomains.includes(cardB.domain)) || (chaosDomains.includes(cardA.domain) && orderDomains.includes(cardB.domain)) ? 0.8 : 0.2;
+    
+    let score = magnitude * 5 + affinity * 2 - conflict * 1.5;
+    score = Math.max(0, Math.min(10, score));
+    
+    return {
+      crossRatio: cr, magnitude, resonance: affinity > 0.3, conflict: conflict > 0.5,
+      resonanceBonus: affinity * 2, conflictPenalty: conflict * 1.5,
+      score: Math.round(score * 10) / 10
+    };
+  }
+
+  computeHarmonicConjugate(collisions) {
+    const scores = collisions.map(c => c.torsion.score);
+    if (scores.length < 3) return null;
+    
+    const [s1, s2, s3] = scores;
+    const harmonicMean = 3 / ((1/s1) + (1/s2) + (1/s3));
+    const geometricMean = Math.cbrt(s1 * s2 * s3);
+    const arithmeticMean = (s1 + s2 + s3) / 3;
+    const dPower = Math.round(Math.max(1, Math.min(10, harmonicMean * 0.4 + geometricMean * 0.35 + arithmeticMean * 0.25)));
+    
+    const allCards = collisions.flatMap(c => [c.loopACard, c.loopBCard]);
+    const words = allCards.map(c => c.word);
+    const domains = [...new Set(allCards.map(c => c.domain))];
+    const pieRoots = [...new Set(allCards.map(c => c.pie_root))];
+    const fusedWord = words.map(w => w.substring(0, Math.ceil(w.length/2))).join('').substring(0, 12);
+    const avgResonance = collisions.filter(c => c.torsion.resonance).length / collisions.length;
+    
+    const dCard = {
+      id: `D_${String(this.dCards.length + 1).padStart(3, '0')}`,
+      generated_by: 'mategwas',
+      round: collisions[0].round,
+      from_collision: allCards.map(c => `${c.god}_${c.word}`),
+      word: fusedWord,
+      english: `The ${domains.map(d => d.split('_').pop()).join('-')} Emergence`,
+      power: dPower,
+      domain: domains.join('_fused_'),
+      pie_root: pieRoots.join(' + '),
+      polarity: avgResonance > 0.5 ? 'light' : avgResonance < 0.3 ? 'dark' : 'neutral',
+      effect: `Emergent fusion at power ${dPower}`,
+      cost: { type: 'emergence', amount: Math.ceil(dPower/2) },
+      is_d_card: true
+    };
+    
+    this.dCards.push(dCard);
+    this._log('harmonic', `Computed D: "${dCard.word}" (power: ${dCard.power})`);
+    return dCard;
+  }
+
+  _log(type, message) { this.computationLog.push({ timestamp: Date.now(), type, message }); }
+  getLog() { return this.computationLog; }
+}
+</script>
+
+<script>
+// ============================================================
+// TORSION ENGINE (embedded)
+// ============================================================
+class TorsionEngine {
+  constructor(masterDeck) {
+    this.mategwas = new Mategwas(masterDeck);
+    this.gods = [...GODS];
+    this.hands = {};
+    this.round = 0;
+    this.collisions = [];
+    this.state = 'setup';
+    this.winner = null;
+    this.table = { A: null, B: null, C: null };
+    this.loopAPos = 0;
+    this.loopBPos = 0;
+    this.loopADone = false;
+    this.loopBDone = false;
+  }
+
+  setup() {
+    this.round = 0;
+    this.collisions = [];
+    this.winner = null;
+    this.table = { A: null, B: null, C: null };
+    this.loopAPos = 0;
+    this.loopBPos = 0;
+    this.loopADone = false;
+    this.loopBDone = false;
+    this.hands = this.mategwas.deal(this.gods);
+    this.state = 'playing';
+    return this.getState();
+  }
+
+  playTurn() {
+    if (this.state === 'ended') return this.getState();
+    
+    let playingGod, loop;
+    
+    if (!this.loopADone && this.loopAPos <= 2) {
+      playingGod = this.gods.find(g => g.loop === 'A' && g.position === ['A','B','C'][this.loopAPos]);
+      loop = 'A';
+    } else if (!this.loopBDone && this.loopBPos <= 2) {
+      playingGod = this.gods.find(g => g.loop === 'B' && g.position === ['A','B','C'][this.loopBPos]);
+      loop = 'B';
+    } else if (this.loopADone && this.loopBDone) {
+      this._resolveCollisions();
+      return this.getState();
+    } else {
+      if (!this.loopADone) {
+        playingGod = this.gods.find(g => g.loop === 'A' && g.position === ['A','B','C'][this.loopAPos]);
+        loop = 'A';
+      } else {
+        playingGod = this.gods.find(g => g.loop === 'B' && g.position === ['A','B','C'][this.loopBPos]);
+        loop = 'B';
+      }
+    }
+    
+    if (!playingGod) return this.getState();
+    
+    const hand = this.hands[playingGod.id];
+    if (!hand || hand.cards.length === 0) {
+      if (loop === 'A') this.loopAPos++; else this.loopBPos++;
+      this._checkEnd();
+      return this.getState();
+    }
+    
+    const cardIdx = playingGod.id === 'loki' && Math.random() < 0.3 ?
+      hand.cards.findIndex(c => c.power === Math.min(...hand.cards.map(c2 => c2.power))) :
+      hand.cards.findIndex(c => c.power === Math.max(...hand.cards.map(c2 => c2.power)));
+    
+    const card = hand.cards.splice(cardIdx >= 0 ? cardIdx : 0, 1)[0];
+    hand.played.push(card);
+    
+    this.table[playingGod.position] = { god: playingGod, card, loop };
+    
+    if (loop === 'A') { this.loopAPos++; if (this.loopAPos >= 3) this.loopADone = true; }
+    else { this.loopBPos++; if (this.loopBPos >= 3) this.loopBDone = true; }
+    
+    if (this.loopADone && this.loopBDone) this.state = 'collision';
+    this._checkEnd();
+    return this.getState();
+  }
+
+  autoPlayRound() {
+    if (this.state === 'ended') return this.getState();
+    
+    this.table = { A: null, B: null, C: null };
+    this.loopAPos = 0; this.loopBPos = 0;
+    this.loopADone = false; this.loopBDone = false;
+    this.round++;
+    this.state = 'playing';
+    
+    for (let i = 0; i < 6; i++) {
+      const result = this.playTurn();
+      if (result.state === 'ended' || result.state === 'collision') break;
+    }
+    
+    if (this.state === 'collision') this._resolveCollisions();
+    return this.getState();
+  }
+
+  _resolveCollisions() {
+    this.state = 'computing';
+    const positions = ['A','B','C'];
+    const results = [];
+    
+    positions.forEach(pos => {
+      const loopA = Object.values(this.table).find(e => e && e.loop === 'A' && e.god.position === pos);
+      const loopB = Object.values(this.table).find(e => e && e.loop === 'B' && e.god.position === pos);
+      
+      if (loopA && loopB) {
+        const torsion = this.mategwas.computeTorsionScore(loopA.card, loopB.card);
+        results.push({
+          round: this.round, position: pos,
+          loopA: loopA.god.id, loopB: loopB.god.id,
+          loopACard: loopA.card, loopBCard: loopB.card,
+          torsion
+        });
+      }
+    });
+    
+    this.collisions.push(...results);
+    
+    if (results.length >= 3) {
+      const dCard = this.mategwas.computeHarmonicConjugate(results);
+    }
+    
+    this._checkEnd();
+  }
+
+  _checkEnd() {
+    let ended = false;
+    
+    for (const god of this.gods) {
+      const hand = this.hands[god.id];
+      if (hand && hand.cards.length === 0 && hand.played.length >= 5) {
+        ended = true;
+        this.winner = this._getWinner();
+        break;
+      }
+    }
+    
+    if (!ended && this.mategwas.dCards.length > 0) {
+      const lastD = this.mategwas.dCards[this.mategwas.dCards.length - 1];
+      if (lastD.power >= 10) { ended = true; this.winner = 'Mategwas'; }
+    }
+    
+    if (!ended && this.round >= 10) {
+      ended = true;
+      this.winner = this._getWinner();
+    }
+    
+    if (ended) this.state = 'ended';
+  }
+
+  _getWinner() {
+    let maxPower = 0, winner = null;
+    for (const god of this.gods) {
+      const hand = this.hands[god.id];
+      if (hand) {
+        const total = hand.played.reduce((s, c) => s + c.power, 0);
+        if (total > maxPower) { maxPower = total; winner = god.name; }
+      }
+    }
+    return winner || 'Draw';
+  }
+
+  getState() {
+    return {
+      round: this.round, state: this.state,
+      hands: this.hands, table: this.table,
+      collisions: this.collisions,
+      dCards: this.mategwas.dCards,
+      mategwasLog: this.mategwas.getLog(),
+      winner: this.winner,
+      loopAPos: this.loopAPos, loopBPos: this.loopBPos,
+      loopADone: this.loopADone, loopBDone: this.loopBDone
+    };
+  }
+
+  reset() {
+    this.mategwas = new Mategwas(this.mategwas.masterDeck);
+    this.setup();
+  }
+}
+</script>
+
+<script>
+// ============================================================
+// UI CONTROLLER
+// ============================================================
+let engine;
+
+async function init() {
+  await loadCards();
+  engine = new TorsionEngine(MASTER_DECK);
+  initCosmos();
+  updateUI();
+}
+
+function dealGame() {
+  engine.setup();
+  updateUI();
+  addGameLog('game', '🐇 Mategwas shuffles and deals 5 cards to each god');
+  addGameLog('game', 'Loop A: Loki → Zeus → Jupiter');
+  addGameLog('game', 'Loop B: Odin → Thor → Shiva');
+}
+
+function playOneTurn() {
+  const state = engine.playTurn();
+  updateUI();
+  
+  if (state.state === 'playing') {
+    const lastTable = Object.values(state.table).filter(e => e).pop();
+    if (lastTable) {
+      addGameLog('play', `${lastTable.god.sigil} ${lastTable.god.name} plays "${lastTable.card.word}" [P:${lastTable.card.power}] → ${lastTable.god.position}`);
+    }
+  }
+  
+  if (state.state === 'collision') {
+    addGameLog('game', '⚡ BOTH LOOPS COMPLETE — Collision ready!');
+  }
+  
+  if (state.state === 'ended') {
+    addGameLog('game', `🏆 GAME OVER! Winner: ${state.winner}`);
+  }
+}
+
+function playFullRound() {
+  const state = engine.autoPlayRound();
+  updateUI();
+  
+  addGameLog('game', `━━━ ROUND ${state.round} ━━━`);
+  
+  Object.values(state.table).forEach(entry => {
+    if (entry) {
+      addGameLog('play', `${entry.god.sigil} ${entry.god.name} → "${entry.card.word}" [P:${entry.card.power}]`);
+    }
+  });
+  
+  if (state.collisions.length > 0) {
+    const lastCollisions = state.collisions.filter(c => c.round === state.round);
+    lastCollisions.forEach(c => {
+      const icon = c.torsion.resonance ? '✨' : c.torsion.conflict ? '💥' : '•';
+      addGameLog('collision', `${icon} Pos ${c.position}: ${c.loopACard.word}↔${c.loopBCard.word} | Torsion: ${c.torsion.score}`);
+    });
+  }
+  
+  if (state.dCards.length > 0) {
+    const lastD = state.dCards[state.dCards.length - 1];
+    addGameLog('d_card', `🐇 D emerges: "${lastD.word}" — ${lastD.english} [P:${lastD.power}]`);
+  }
+  
+  if (state.state === 'ended') {
+    addGameLog('game', `🏆 GAME OVER! Winner: ${state.winner}`);
+  }
+}
+
+function resolveCollisions() {
+  if (engine.state === 'collision') {
+    engine._resolveCollisions();
+    updateUI();
+    
+    engine.collisions.filter(c => c.round === engine.round).forEach(c => {
+      addGameLog('collision', `💥 Pos ${c.position}: Torsion ${c.torsion.score} ${c.torsion.resonance ? '✨RESONANCE' : ''}`);
+    });
+    
+    if (engine.mategwas.dCards.length > 0) {
+      const dCard = engine.mategwas.dCards[engine.mategwas.dCards.length - 1];
+      addGameLog('d_card', `🐇 D Card: "${dCard.word}" [Power: ${dCard.power}]`);
+    }
+  }
+}
+
+function resetGame() {
+  engine = new TorsionEngine(MASTER_DECK);
+  document.getElementById('game-log').innerHTML = '<div class="log-line game">Game reset. Deal to begin.</div>';
+  updateUI();
+}
+
+function addGameLog(type, message) {
+  const log = document.getElementById('game-log');
+  const line = document.createElement('div');
+  line.className = `log-line ${type}`;
+  line.innerHTML = `<span style="font-size:0.5rem;color:var(--ash)">[${new Date().toLocaleTimeString()}]</span> ${message}`;
+  log.prepend(line);
+  
+  // Keep max 100 lines
+  while (log.children.length > 100) log.removeChild(log.lastChild);
+}
+
+function updateUI() {
+  if (!engine) return;
+  
+  const state = engine.getState();
+  
+  // Round & State
+  document.getElementById('round-display').textContent = `Round ${state.round}`;
+  const stateDisplay = document.getElementById('state-display');
+  stateDisplay.textContent = state.state.toUpperCase();
+  stateDisplay.className = `state-badge state-${state.state}`;
+  document.getElementById('d-count').textContent = state.dCards.length;
+  
+  // Update card slots
+  const godSlots = {
+    'loki': 'slot-loki', 'odin': 'slot-odin',
+    'zeus': 'slot-zeus', 'thor': 'slot-thor',
+    'jupiter': 'slot-jupiter', 'shiva': 'slot-shiva'
+  };
+  
+  // Get all table entries
+  const tableEntries = Object.values(state.table).filter(e => e);
+  
+  Object.entries(godSlots).forEach(([godId, slotId]) => {
+    const slot = document.getElementById(slotId);
+    const entry = tableEntries.find(e => e.god.id === godId);
+    
+    if (entry) {
+      slot.classList.add('played');
+      slot.style.borderColor = entry.god.color;
+      slot.innerHTML = `
+        <div class="slot-label">Position ${entry.god.position} · Loop ${entry.god.loop}</div>
+        <div class="god-header">
+          <span class="god-sigil">${entry.god.sigil}</span>
+          <span class="god-name" style="color:${entry.god.color}">${entry.god.name}</span>
+        </div>
+        <div class="card-word" style="color:${entry.god.color}">"${entry.card.word}"</div>
+        <div class="card-english">${entry.card.english}</div>
+        <div class="card-effect">${entry.card.effect}</div>
+        <div class="card-stats">
+          <span>⚡ ${entry.card.power}</span>
+          <span>📜 ${entry.card.pie_root}</span>
+          <span>${entry.card.polarity}</span>
+        </div>
+      `;
+    } else {
+      slot.classList.remove('played');
+      slot.style.borderColor = GODS.find(g => g.id === godId)?.color || 'var(--gold-dim)';
+      const god = GODS.find(g => g.id === godId);
+      slot.innerHTML = `
+        <div class="slot-label">Position ${god?.position} · Loop ${god?.loop}</div>
+        <div class="god-header">
+          <span class="god-sigil">${god?.sigil}</span>
+          <span class="god-name" style="color:${god?.color}">${god?.name}</span>
+        </div>
+        <div style="font-size:0.5rem;color:var(--ash);font-style:italic;">Awaiting card...</div>
+      `;
+    }
+  });
+  
+  // Update collision zones
+  ['A','B','C'].forEach(pos => {
+    const zone = document.getElementById(`collision-${pos}`);
+    const collision = state.collisions.find(c => c.position === pos && c.round === state.round);
+    if (collision) {
+      zone.innerHTML = `💥<br>${pos}<br><span style="font-size:0.5rem;">T:${collision.torsion.score}</span>`;
+      zone.style.borderColor = '#ff6b6b';
+    } else {
+      zone.innerHTML = `⚡<br>${pos}`;
+      zone.style.borderColor = 'rgba(255,107,107,0.2)';
+    }
+  });
+  
+  // D Card section
+  const dSection = document.getElementById('d-card-section');
+  const dDisplay = document.getElementById('d-card-display');
+  if (state.dCards.length > 0) {
+    dSection.style.display = 'block';
+    const lastD = state.dCards[state.dCards.length - 1];
+    dDisplay.innerHTML = `
+      <div style="font-family:'Uncial Antiqua',serif;font-size:1.2rem;color:var(--mategwas);">"${lastD.word}"</div>
+      <div style="font-size:0.7rem;color:var(--rune);">${lastD.english}</div>
+      <div style="font-size:0.6rem;color:var(--ash);">Power: ${lastD.power} | Domain: ${lastD.domain}</div>
+      <div style="font-size:0.5rem;color:var(--gold-dim);">PIE: ${lastD.pie_root}</div>
+    `;
+  } else {
+    dSection.style.display = 'none';
+  }
+  
+  // Update hands
+  const handsDisplay = document.getElementById('hands-display');
+  if (state.hands && Object.keys(state.hands).length > 0) {
+    handsDisplay.innerHTML = GODS.map(god => {
+      const hand = state.hands[god.id];
+      if (!hand) return '';
+      return `
+        <div class="god-hand" style="--god-color:${god.color};border-left-color:${god.color};">
+          <div class="god-hand-header">
+            <span style="font-size:1rem;">${god.sigil}</span>
+            <span class="god-hand-name" style="color:${god.color}">${god.name}</span>
+            <span style="font-size:0.5rem;color:var(--ash);">${hand.cards.length} cards</span>
+          </div>
+          <div class="god-hand-cards">
+            ${hand.cards.map(c => `
+              <div class="mini-card" style="--god-color:${god.color};border-color:${god.color};" title="${c.english}\nPower: ${c.power}\nPIE: ${c.pie_root}">
+                <div class="mini-word" style="color:${god.color}">"${c.word}"</div>
+                <div class="mini-power">P:${c.power} | ${c.polarity}</div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="played-pile">Played: ${hand.played.length} cards (Total power: ${hand.played.reduce((s,c) => s + c.power, 0)})</div>
+        </div>
+      `;
+    }).join('');
+  }
+  
+  // Update buttons
+  document.getElementById('btn-deal').disabled = false;
+  document.getElementById('btn-play-one').disabled = state.state === 'ended';
+  document.getElementById('btn-play-round').disabled = state.state === 'ended';
+  document.getElementById('btn-resolve').disabled = state.state !== 'collision';
+  
+  // End game display
+  if (state.state === 'ended' && state.winner) {
+    addGameLog('game', `👑 ${state.winner} reigns supreme!`);
+  }
+}
+
+function initCosmos() {
+  const canvas = document.getElementById('cosmos');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const stars = Array.from({length: 150}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 1.5,
+    a: Math.random(),
+    speed: Math.random() * 0.002 + 0.001
+  }));
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    stars.forEach(s => {
+      s.a += s.speed;
+      const alpha = (Math.sin(s.a) + 1) / 2 * 0.5;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(201,168,76,${alpha})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', init);
+</script>
 </body>
 </html>
